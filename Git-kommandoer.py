@@ -8,4 +8,6 @@ git commit -m "din besked her" # Denne kommando "commit" ændringerne, du har fo
 
 git push  #Denne kommando uploader dine ændringer til det remote repository (for eksempel GitHub). Andre kan nu se og bidrage til dine ændringer.
 
+git push --set-upstream https://github.com/tyllegris/code.git master #Denne kommando uploader dine ændringer til det remote repository (for eksempel GitHub). Andre kan nu se og bidrage til dine ændringer.
+
 git pull #Hvis du arbejder i et team, og nogen anden har lavet ændringer, bruger du denne kommando til at hente og integrere disse ændringer i dit lokale repository.
