@@ -1,0 +1,155 @@
+#https://www.tutorialspoint.com/printing-a-list-to-a-tkinter-text-widget
+
+from tkinter import *
+from tkinter import ttk
+import speech_recognition as sr
+import os
+import pyttsx3
+import time
+
+#shop_list = []
+list_text = None
+text = None
+
+def main():
+
+    global list_text
+
+
+    root = Tk()
+    root.geometry("820x680")
+    root.title("iShop - your shoppinglist 1.0")
+    frm = ttk.Frame(root, padding=10)
+    frm.grid()
+    style = ttk.Style()
+
+    # opretter en style som anvender specifikke farver til tekst og baggrund,
+    # og angiver skrifttype og størrelse
+    style.configure('start.TButton', fieldbackground= "green", foreground='green', background='white', font=("Helvetica", 30, "bold"))
+    style.configure('stop.TButton', fieldbackground= "green", foreground='red', background='white', font=("Helvetica", 20, "bold"))
+    ttk.Label(frm, text=(text)).grid(column=0, row=1)
+    list_text = Text(frm, width=95, height=20)
+    list_text.grid(column=1, row=4)
+    ttk.Button(frm, text="Add to Shoppinglist", width=30, command=lambda: tilfoj_shop_list(), style='start.TButton').grid(column=1, row=1)
+    ttk.Button(frm, text="Sent Shoppinglist", width=30, command=lambda: send_shop_list(), style='start.TButton').grid(column=1, row=2)
+
+    ttk.Button(frm, text="Quit", width=30, command=root.destroy, style='stop.TButton').grid(column=1, row=6)
+   
+    ttk.Button(frm, text="Delete Shoppinglist", width=30, command=lambda: slet_shop_list(),style='stop.TButton').grid(column=1, row=5)
+
+        # lav en ny PhotoImage instans
+    image = PhotoImage(file='ishop.png')  # erstat 'your_image_file.png' med din filsti
+
+    # lav et nyt Label widget for at vise billedet
+    image_label = ttk.Label(frm, image=image)
+    image_label.image = image  # holde en reference til billedet for at undgå garbage collection
+
+    # placere billedet i grid
+    image_label.grid(column=1, row=0)
+    read_shop_list()
+    root.mainloop()
+
+def tilfoj_shop_list():
+    global shop_list
+
+
+    engine = pyttsx3.init()
+    r = sr.Recognizer()
+
+
+    with sr.Microphone() as source:
+        print("Say something!")
+        audio = r.listen(source)
+    
+
+
+
+
+    text = r.recognize_google(audio, language="da-DK")
+
+    engine = pyttsx3.init()
+    engine.say(f"You added: {text}")
+    engine.runAndWait()
+
+    with open("shop_list.txt", "a") as f:
+        f.write(text + "\n")
+    opdatere_shop_list()
+                
+
+    
+def opdatere_shop_list():
+    
+    global list_text
+
+    with open("shop_list.txt", "r") as f:
+        list_text.delete('1.0', END)
+        list_text.insert(END, f.read())
+    
+
+def read_shop_list():
+    global list_text
+
+    # Tjek om filen eksisterer, hvis den ikke gør, opret den
+    if not os.path.exists("shop_list.txt"):
+        open("shop_list.txt", "w").close()
+    
+    # Når du er sikker på at filen eksisterer, kan du åbne den som normalt
+    with open("shop_list.txt", "r") as f:
+        for line in f:
+            list_text.insert(END, line.rstrip() + "\n")
+
+    
+    
+def slet_shop_list():
+    # Tjek om filen eksisterer, før du forsøger at slette den
+    if os.path.exists("shop_list.txt"):
+        os.remove("shop_list.txt")
+    list_text.delete('1.0', END)  # Fjern alt indhold fra text widget
+
+def read_file_into_list():
+    with open("shop_list.txt", "r") as f:
+        lines = f.readlines()
+
+    # Fjerner eventuelle linjeskift fra hver linje
+    lines = [line.strip() for line in lines]
+
+    return lines
+
+
+def send_shop_list():   
+    global list_text
+    import smtplib
+    from smtplib import SMTPException
+
+    sender = 'bent@bekent.dk'
+    receivers = ['bent98383616@gmail.com']
+    password = "Bto98383616"
+
+    #shop_email_list = read_file_into_list()
+
+    message = f"""From: From Person <{sender}>
+    To: To Person <{receivers[0]}>
+    Subject: Shoppinglist
+
+    This is your shoppinglist { read_file_into_list()}
+    """
+
+    try:
+        smtpObj = smtplib.SMTP('mailscanner.powerhosting.dk', 587)  # or 465
+        smtpObj.starttls()
+        smtpObj.login(sender, password)
+        smtpObj.sendmail(sender, receivers, message)         
+        print("Successfully sent email")
+        engine = pyttsx3.init()
+        engine.say("You shopping list is sent to you email")
+        engine.runAndWait()
+        slet_shop_list()
+    except SMTPException:
+        print("Error: unable to send email")
+
+
+
+if __name__ == "__main__":
+
+    main()
+    
